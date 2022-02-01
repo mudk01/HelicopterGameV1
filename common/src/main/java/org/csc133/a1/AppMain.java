@@ -10,6 +10,7 @@ import com.codename1.ui.layouts.*;
 import com.codename1.io.*;
 import com.codename1.ui.plaf.*;
 import com.codename1.ui.util.Resources;
+import com.codename1.ui.util.UITimer;
 import org.graalvm.compiler.phases.util.GraphOrder;
 
 /**
@@ -28,13 +29,14 @@ public class AppMain extends Lifecycle {
 class Game extends Form implements Runnable {
     private GameWorld gw;
 
-    @Override
-    public void run() {
-        repaint();
-    }
-
     public Game() {
         gw = new GameWorld();
+
+        UITimer timer = new UITimer(this);
+        timer.schedule(100, true, this);
+
+        this.getAllStyles().setBgColor(ColorUtil.BLACK);
+        this.show();
     }
 
      public void paint(Graphics g) {
@@ -42,11 +44,17 @@ class Game extends Form implements Runnable {
         gw.draw(g);
     }
 
+    @Override
+    public void run() {
+        repaint();
+    }
+
 }
 
 class GameWorld {
     private River river;
     private Helipad helipad;
+    private Fire fire;
 
     public GameWorld() {
         init();
@@ -54,10 +62,12 @@ class GameWorld {
     private void init() {
         river = new River();
         helipad = new Helipad();
+        fire = new Fire();
     }
     void draw(Graphics g) {
         river.draw(g);
         helipad.draw(g);
+        fire.draw(g);
     }
 }
 
@@ -68,7 +78,7 @@ class River {
 
     public River() {
         width = Display.getInstance().getDisplayWidth();
-        height = Display.getInstance().getDisplayHeight()/7;
+        height = Display.getInstance().getDisplayHeight()/8;
         location = new Point(0, Display.getInstance().getDisplayHeight()/3 - height);
 
     }
@@ -86,21 +96,33 @@ class Helipad {
 
     public Helipad() {
         boxSize = 150;
-        circleSize = 130;
-        centerLocation = new Point(Display.getInstance().getDisplayWidth()/2, (int) (Display.getInstance().getDisplayHeight() - (boxSize*1.5)));
+        circleSize = 120;
+        centerLocation = new Point(Display.getInstance().getDisplayWidth()/2 - boxSize/2, (int) (Display.getInstance().getDisplayHeight() - (boxSize*1.5)));
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.GRAY);
         g.drawRect(centerLocation.getX(), centerLocation.getY(), boxSize, boxSize, 5);
-        g.fillArc(centerLocation.getX() - circleSize/2, centerLocation.getY() + circleSize/2, circleSize, circleSize, 0, 360);
+        g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2, centerLocation.getY() + (boxSize-circleSize)/2, circleSize, circleSize, 0, 360);
     }
 }
 
-//class Fire {
-//
-//}
-//
+class Fire {
+    private Point location1, location2, location3;
+    private int size;
+
+    public Fire() {
+        size = Display.getInstance().getDisplayHeight()/10;
+        location1 = new Point(Display.getInstance().getDisplayWidth()/4, Display.getInstance().getDisplayHeight()/3 - Display.getInstance().getDisplayHeight()/4);
+    }
+
+    void draw(Graphics g) {
+        g.setColor(ColorUtil.MAGENTA);
+        g.fillArc(location1.getX(),location1.getY(), 140,140,0,360);
+    }
+
+}
+
 //class Helicopter {
 //
 //}
