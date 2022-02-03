@@ -57,19 +57,25 @@ class GameWorld {
     private River river;
     private Helipad helipad;
     private Fire fire;
+    private Helicopter helicopter;
+
 
     public GameWorld() {
         init();
     }
+
     private void init() {
         river = new River();
         helipad = new Helipad();
         fire = new Fire();
+        helicopter = new Helicopter(helipad.getHelipadLocation(), helipad.getBoxSize(), helipad.getCircleSize());
     }
+
     void draw(Graphics g) {
         river.draw(g);
         helipad.draw(g);
         fire.draw(g);
+        helicopter.draw(g);
     }
 }
 
@@ -106,6 +112,18 @@ class Helipad {
         g.setColor(ColorUtil.GRAY);
         g.drawRect(centerLocation.getX(), centerLocation.getY(), boxSize, boxSize, 5);
         g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2, centerLocation.getY() + (boxSize-circleSize)/2, circleSize, circleSize, 0, 360);
+    }
+
+    public Point getHelipadLocation() {
+        return centerLocation;
+    }
+
+    public int getBoxSize() {
+        return boxSize;
+    }
+
+    public int getCircleSize() {
+        return circleSize;
     }
 }
 
@@ -146,6 +164,26 @@ class Fire {
 
 }
 
-//class Helicopter {
-//
-//}
+class Helicopter {
+    private int size;
+    private Point location;
+    private Point helipadCenterLocation;
+    private int centerStart;
+    private int helipadCircleSize;
+
+    public Helicopter(Point heliLocation, int helipadBoxSize, int heliCircleSize) {
+        size = 35;
+        helipadCenterLocation = heliLocation;
+        centerStart = (helipadBoxSize-heliCircleSize);
+        location = new Point(helipadCenterLocation.getX() + centerStart, helipadCenterLocation.getY() + centerStart);
+        helipadCircleSize = heliCircleSize;
+    }
+
+    void draw(Graphics g) {
+        g.setColor(ColorUtil.YELLOW);
+        g.fillArc(location.getX() + size, location.getY() + size, size, size, 0, 360);
+        g.drawLine(location.getX()+size, location.getY() + size, location.getX(), location.getY());
+    }
+
+
+}
