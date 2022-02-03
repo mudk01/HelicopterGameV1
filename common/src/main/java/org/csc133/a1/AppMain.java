@@ -110,7 +110,7 @@ class Helipad {
 }
 
 class Fire {
-    private Point location1, location2, location3;
+    private Point leftRiver, belowRiver, rightRiver;
     private int size;
 
     //TODO : Research how to use Fire in a Java Collection.
@@ -118,14 +118,30 @@ class Fire {
 
     public Fire() {
         size = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/10;
-        location1 = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth()/4, new Random().nextInt(50) + Display.getInstance().getDisplayHeight()/3 - (int)( Display.getInstance().getDisplayHeight()/3.5));
-        location2 = new Point(new Random().nextInt(50) + Display.getInstance().getDisplayWidth()/4, new Random().nextInt(20) + Display.getInstance().getDisplayHeight()/3 - Display.getInstance().getDisplayHeight()/2);
+        leftRiver = new Point(new Random().nextInt(80) + (int)(Display.getInstance().getDisplayWidth()/4.5), new Random().nextInt(50) + Display.getInstance().getDisplayHeight()/3 - (int)( Display.getInstance().getDisplayHeight()/3.5));
+        belowRiver = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth()/2,new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/2);
+        rightRiver = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth() - (int)(size*2.25), new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/3 - (int)(Display.getInstance().getDisplayHeight()/3.5));
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
-        g.fillArc(location1.getX(),location1.getY(), size,size,0,360);
-        g.drawString("" + size, location1.getX() + size , location1.getY() + size);
+        //Fire 1
+        //
+
+        g.fillArc(leftRiver.getX(),leftRiver.getY(), size,size,0,360);
+        g.drawString("" + size, leftRiver.getX() + size , leftRiver.getY() + size);
+
+        //Fire 2
+        //
+
+        g.fillArc(belowRiver.getX(), belowRiver.getY(), size+50, size+50, 0, 360);
+        g.drawString(""+ (size+50), belowRiver.getX() + (size+50), belowRiver.getY() + (size+50));
+
+        //Fire3
+        //
+
+        g.fillArc(rightRiver.getX(), rightRiver.getY(), size+150, size+150, 0, 360);
+        g.drawString(""+ (size+150), rightRiver.getX() + (size+150), rightRiver.getY() + (size+150));
     }
 
 }
