@@ -128,7 +128,7 @@ class Helipad {
 
 class Fire {
     private Point leftRiver, belowRiver, rightRiver;
-    private int size;
+    private int size, size1, size2;
     private Font fireSizeFont;
 
     //TODO : Research how to use Fire in a Java Collection.
@@ -136,6 +136,8 @@ class Fire {
 
     public Fire() {
         size = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/10;
+        size1 = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/8;
+        size2 = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/5;
         leftRiver = new Point(new Random().nextInt(80) + (int)(Display.getInstance().getDisplayWidth()/4.5),
                  new Random().nextInt(50) + Display.getInstance().getDisplayHeight()/3 -
                    (int)( Display.getInstance().getDisplayHeight()/3.5));
@@ -157,14 +159,15 @@ class Fire {
 
         //Fire 2
         //
-        g.fillArc(belowRiver.getX(), belowRiver.getY(), size+50, size+50, 0, 360);
-        g.drawString(""+ (size+50), belowRiver.getX() + (size+50), belowRiver.getY() + (size+50));
+        g.fillArc(belowRiver.getX(), belowRiver.getY(), size1, size1, 0, 360);
+        g.drawString(""+ size1, belowRiver.getX() + size1, belowRiver.getY() + size1);
 
         //Fire3
+        //fix issue of hitting right side of display
         //
-        g.fillArc(rightRiver.getX(), rightRiver.getY(), size+150, size+150, 0, 360);
+        g.fillArc(rightRiver.getX(), rightRiver.getY(), size2, size2, 0, 360);
         g.setFont(fireSizeFont);
-        g.drawString(""+ (size+150), rightRiver.getX() + (size+150), rightRiver.getY() + (size+150));
+        g.drawString(""+ size2, rightRiver.getX() + size2, rightRiver.getY() + size2);
     }
 
 }
@@ -181,7 +184,11 @@ class Helicopter {
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
         g.fillArc(location.getX() + size, location.getY() + size, size, size, 0, 360);
-        g.drawLine(location.getX() + size, location.getY() + size*2, location.getX(), location.getY());
+
+        //Line not displaying correctly, sometimes visible, sometimes not displayed
+        //most likely some bug, will look into
+        //
+        g.drawLine(location.getX() + size +size/2, location.getY() +size +size/2, location.getX() + size/2 + size, location.getY() - size/6);
     }
 
 
