@@ -31,6 +31,12 @@ public class AppMain extends Lifecycle {
 class Game extends Form implements Runnable {
     private GameWorld gw;
 
+//    final static int DISP_W = Display.getInstance().getDisplayWidth();
+//    final static int DISP_H = Display.getInstance().getDisplayHeight();
+//
+//    public static int getSmallDim() { return Math.min(DISP_W,DISP_H); }
+//    public static int getLargeDim() { return Math.max(DISP_W,DISP_H); }
+
     public Game() {
         gw = new GameWorld();
 
@@ -48,6 +54,7 @@ class Game extends Form implements Runnable {
 
     @Override
     public void run() {
+//        gw.tick();
         repaint();
     }
 
@@ -68,7 +75,7 @@ class GameWorld {
         river = new River();
         helipad = new Helipad();
         fire = new Fire();
-        helicopter = new Helicopter(helipad.getHelipadLocation(), helipad.getBoxSize(), helipad.getCircleSize());
+        helicopter = new Helicopter();
     }
 
     void draw(Graphics g) {
@@ -76,6 +83,9 @@ class GameWorld {
         helipad.draw(g);
         fire.draw(g);
         helicopter.draw(g);
+    }
+
+    public void tick() {
     }
 }
 
@@ -104,7 +114,7 @@ class Helipad {
 
     public Helipad() {
         boxSize = 150;
-        circleSize = 120;
+        circleSize = 100;
         centerLocation = new Point(Display.getInstance().getDisplayWidth()/2 - boxSize/2, (int) (Display.getInstance().getDisplayHeight() - (boxSize*1.5)));
     }
 
@@ -114,51 +124,57 @@ class Helipad {
         g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2, centerLocation.getY() + (boxSize-circleSize)/2, circleSize, circleSize, 0, 360);
     }
 
-    public Point getHelipadLocation() {
-        return centerLocation;
-    }
-
-    public int getBoxSize() {
-        return boxSize;
-    }
-
-    public int getCircleSize() {
-        return circleSize;
-    }
+//    public Point getHelipadLocation() {
+//        return centerLocation;
+//    }
+//
+//    public int getBoxSize() {
+//        return boxSize;
+//    }
+//
+//    public int getCircleSize() {
+//        return circleSize;
+//    }
 }
 
 class Fire {
     private Point leftRiver, belowRiver, rightRiver;
     private int size;
+    private Font fireSizeFont;
 
     //TODO : Research how to use Fire in a Java Collection.
     //
 
     public Fire() {
         size = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/10;
-        leftRiver = new Point(new Random().nextInt(80) + (int)(Display.getInstance().getDisplayWidth()/4.5), new Random().nextInt(50) + Display.getInstance().getDisplayHeight()/3 - (int)( Display.getInstance().getDisplayHeight()/3.5));
-        belowRiver = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth()/2,new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/2);
-        rightRiver = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth() - (int)(size*2.25), new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/3 - (int)(Display.getInstance().getDisplayHeight()/3.5));
+        leftRiver = new Point(new Random().nextInt(80) + (int)(Display.getInstance().getDisplayWidth()/4.5),
+                 new Random().nextInt(50) + Display.getInstance().getDisplayHeight()/3 -
+                   (int)( Display.getInstance().getDisplayHeight()/3.5));
+        belowRiver = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth()/2,
+                  new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/2);
+        rightRiver = new Point(new Random().nextInt(50) + Display.getInstance().getDisplayWidth() -
+                    (int)(size*2.35), new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/3 -
+                    (int)(Display.getInstance().getDisplayHeight()/3.5));
+        fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
         //Fire 1
         //
-
         g.fillArc(leftRiver.getX(),leftRiver.getY(), size,size,0,360);
         g.drawString("" + size, leftRiver.getX() + size , leftRiver.getY() + size);
 
         //Fire 2
         //
-
         g.fillArc(belowRiver.getX(), belowRiver.getY(), size+50, size+50, 0, 360);
         g.drawString(""+ (size+50), belowRiver.getX() + (size+50), belowRiver.getY() + (size+50));
 
         //Fire3
         //
-
         g.fillArc(rightRiver.getX(), rightRiver.getY(), size+150, size+150, 0, 360);
+        g.setFont(fireSizeFont);
         g.drawString(""+ (size+150), rightRiver.getX() + (size+150), rightRiver.getY() + (size+150));
     }
 
@@ -167,22 +183,16 @@ class Fire {
 class Helicopter {
     private int size;
     private Point location;
-    private Point helipadCenterLocation;
-    private int centerStart;
-    private int helipadCircleSize;
 
-    public Helicopter(Point heliLocation, int helipadBoxSize, int heliCircleSize) {
-        size = 35;
-        helipadCenterLocation = heliLocation;
-        centerStart = (helipadBoxSize-heliCircleSize);
-        location = new Point(helipadCenterLocation.getX() + centerStart, helipadCenterLocation.getY() + centerStart);
-        helipadCircleSize = heliCircleSize;
+    public Helicopter() {
+        size = 30;
+        location = new Point(Display.getInstance().getDisplayWidth()/2 - (int)(size*1.5), Display.getInstance().getDisplayHeight() - (int)(Display.getInstance().getDisplayHeight()/8.5));
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
         g.fillArc(location.getX() + size, location.getY() + size, size, size, 0, 360);
-        g.drawLine(location.getX()+size, location.getY() + size, location.getX(), location.getY());
+        g.drawLine(location.getX() + size, location.getY() + size*2, location.getX(), location.getY());
     }
 
 
