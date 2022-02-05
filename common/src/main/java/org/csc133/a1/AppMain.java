@@ -124,17 +124,6 @@ class Helipad {
         g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2, centerLocation.getY() + (boxSize-circleSize)/2, circleSize, circleSize, 0, 360);
     }
 
-//    public Point getHelipadLocation() {
-//        return centerLocation;
-//    }
-//
-//    public int getBoxSize() {
-//        return boxSize;
-//    }
-//
-//    public int getCircleSize() {
-//        return circleSize;
-//    }
 }
 
 class Fire {
