@@ -55,7 +55,7 @@ class Game extends Form implements Runnable {
 
     @Override
     public void run() {
-//        gw.tick();
+        gw.tick();
         repaint();
     }
 
@@ -118,6 +118,11 @@ class GameWorld {
     }
 
     public void tick() {
+        for(Fire fire : fires) {
+            if((new Random().nextInt(100)) % 3 == 0) {
+                fire.growFire();
+            }
+        }
     }
 }
 
@@ -153,8 +158,11 @@ class Helipad {
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.GRAY);
-        g.drawRect(centerLocation.getX(), centerLocation.getY(), boxSize, boxSize, 5);
-        g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2, centerLocation.getY() + (boxSize-circleSize)/2, circleSize, circleSize, 0, 360);
+        g.drawRect(centerLocation.getX(), centerLocation.getY(), boxSize,
+                boxSize, 5);
+        g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2,
+                centerLocation.getY() + (boxSize-circleSize)/2, circleSize,
+                circleSize, 0, 360);
     }
 
 }
@@ -164,22 +172,26 @@ class Fire {
     private int size;
     private Font fireSizeFont;
 
-    //TODO : Research how to use Fire in a Java Collection.
-    //
-
     public Fire(int fireSize, Point fireLocation) {
         size = fireSize;
         location = fireLocation;
-        fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+        fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
+                Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
 
+    }
+
+    void growFire() {
+        size += new Random().nextInt(5);
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
         g.setFont(fireSizeFont);
 
-        g.fillArc(location.getX(),location.getY(), size,size,0,360);
-        g.drawString("" + size, location.getX() + size , location.getY() + size);
+        g.fillArc(location.getX(),location.getY(), size, size,0,
+                360);
+        g.drawString("" + size, location.getX() + size,
+                location.getY() + size);
     }
 
 }
