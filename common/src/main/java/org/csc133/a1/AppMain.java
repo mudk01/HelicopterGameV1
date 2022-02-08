@@ -41,6 +41,13 @@ class Game extends Form implements Runnable {
     public Game() {
         gw = new GameWorld();
 
+        addKeyListener('Q', (evt) -> gw.quit());
+        addKeyListener(-92, (evt) -> gw.input(-92));
+        addKeyListener(-91, (evt) -> gw.input(-91));
+        addKeyListener(-94, (evt) -> gw.input(-94));
+        addKeyListener(-93, (evt) -> gw.input(-93));
+
+
         UITimer timer = new UITimer(this);
         timer.schedule(100, true, this);
 
@@ -124,6 +131,27 @@ class GameWorld {
             }
         }
     }
+
+    public void input(int input) {
+        switch (input) {
+            case -92:
+                helicopter.moveBackwards();
+                break;
+            case -91:
+                helicopter.moveForwards();
+                break;
+            case -93:
+                helicopter.moveRight();
+                break;
+            case -94:
+                helicopter.moveLeft();
+                break;
+        }
+    }
+
+    public void quit() {
+        Display.getInstance().exitApplication();
+    }
 }
 
 class River {
@@ -180,6 +208,10 @@ class Fire {
 
     }
 
+    //TODO: Still need to grow fire from center out, so need to redo fire
+    // object creations
+    //
+
     void growFire() {
         size += new Random().nextInt(5);
     }
@@ -204,6 +236,27 @@ class Helicopter {
         size = 30;
         location = new Point(Game.DISP_W/2 - (int)(size*1.5),
                 Game.DISP_H - (int)(Game.DISP_H/8.5));
+    }
+
+    public void move(){
+        /*
+         */
+    }
+
+    void moveForwards() {
+        location.setY(location.getY() - 10);
+    }
+
+    void moveBackwards() {
+        location.setY(location.getY() + 10);
+    }
+
+    void moveLeft() {
+        location.setX(location.getX() + 10);
+    }
+
+    void moveRight() {
+        location.setX(location.getX() - 10);
     }
 
     void draw(Graphics g) {
