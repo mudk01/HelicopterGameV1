@@ -13,6 +13,7 @@ import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
 import org.graalvm.compiler.phases.util.GraphOrder;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -31,8 +32,8 @@ public class AppMain extends Lifecycle {
 class Game extends Form implements Runnable {
     private GameWorld gw;
 
-//    final static int DISP_W = Display.getInstance().getDisplayWidth();
-//    final static int DISP_H = Display.getInstance().getDisplayHeight();
+    final static int DISP_W = Display.getInstance().getDisplayWidth();
+    final static int DISP_H = Display.getInstance().getDisplayHeight();
 //
 //    public static int getSmallDim() { return Math.min(DISP_W,DISP_H); }
 //    public static int getLargeDim() { return Math.max(DISP_W,DISP_H); }
@@ -63,8 +64,11 @@ class Game extends Form implements Runnable {
 class GameWorld {
     private River river;
     private Helipad helipad;
-    private Fire fire;
+    private Fire fire1, fire2, fire3;
+    private ArrayList<Fire> fires;
     private Helicopter helicopter;
+    private int fireSize1, fireSize2, fireSize3;
+    private Point fireLocation1, fireLocation2, fireLocaton3;
 
 
     public GameWorld() {
@@ -74,14 +78,42 @@ class GameWorld {
     private void init() {
         river = new River();
         helipad = new Helipad();
-        fire = new Fire();
+        fireSize1 = new Random().nextInt(100) +
+                Game.DISP_H/10;
+        fireSize2 = new Random().nextInt(100) +
+                Game.DISP_H/8;
+        fireSize3 = new Random().nextInt(100) +
+                Game.DISP_H/5;
+        fireLocation1 = new Point(new Random().nextInt(80) +
+                (int)(Game.DISP_W/4.5),
+                new Random().nextInt(50) +
+                Game.DISP_H/3 -
+                (int)(Game.DISP_H/3.5));
+        fireLocation2 = new Point(new Random().nextInt(80) +
+                Game.DISP_W/2,
+                new Random().nextInt(80) +
+                Game.DISP_H/2);
+        fireLocaton3 = new Point(new Random().nextInt(50) +
+                Game.DISP_W -
+                (int)(fireSize3*1.5), new Random().nextInt(80) +
+                Game.DISP_H/3 -
+                (int)(Game.DISP_H/3.5));
+        fire1 = new Fire(fireSize1, fireLocation1);
+        fire2 = new Fire(fireSize2, fireLocation2);
+        fire3 = new Fire(fireSize3, fireLocaton3);
+        fires = new ArrayList<>();
+        fires.add(fire1);
+        fires.add(fire2);
+        fires.add(fire3);
         helicopter = new Helicopter();
     }
 
     void draw(Graphics g) {
         river.draw(g);
         helipad.draw(g);
-        fire.draw(g);
+        for(Fire fire : fires) {
+            fire.draw(g);
+        }
         helicopter.draw(g);
     }
 
@@ -95,9 +127,9 @@ class River {
     private int height;
 
     public River() {
-        width = Display.getInstance().getDisplayWidth();
-        height = Display.getInstance().getDisplayHeight()/8;
-        location = new Point(0, Display.getInstance().getDisplayHeight()/3 - height);
+        width = Game.DISP_W;
+        height = Game.DISP_H/8;
+        location = new Point(0, Game.DISP_H/3 - height);
 
     }
 
@@ -115,7 +147,8 @@ class Helipad {
     public Helipad() {
         boxSize = 150;
         circleSize = 100;
-        centerLocation = new Point(Display.getInstance().getDisplayWidth()/2 - boxSize/2, (int) (Display.getInstance().getDisplayHeight() - (boxSize*1.5)));
+        centerLocation = new Point(Game.DISP_W/2 - boxSize/2,
+                (int) (Game.DISP_H - (boxSize*1.5)));
     }
 
     void draw(Graphics g) {
@@ -127,47 +160,26 @@ class Helipad {
 }
 
 class Fire {
-    private Point leftRiver, belowRiver, rightRiver;
-    private int size, size1, size2;
+    private Point location;
+    private int size;
     private Font fireSizeFont;
 
     //TODO : Research how to use Fire in a Java Collection.
     //
 
-    public Fire() {
-        size = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/10;
-        size1 = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/8;
-        size2 = new Random().nextInt(100) + Display.getInstance().getDisplayHeight()/5;
-        leftRiver = new Point(new Random().nextInt(80) + (int)(Display.getInstance().getDisplayWidth()/4.5),
-                 new Random().nextInt(50) + Display.getInstance().getDisplayHeight()/3 -
-                   (int)( Display.getInstance().getDisplayHeight()/3.5));
-        belowRiver = new Point(new Random().nextInt(80) + Display.getInstance().getDisplayWidth()/2,
-                  new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/2);
-        rightRiver = new Point(new Random().nextInt(50) + Display.getInstance().getDisplayWidth() -
-                    (int)(size*2.35), new Random().nextInt(80) + Display.getInstance().getDisplayHeight()/3 -
-                    (int)(Display.getInstance().getDisplayHeight()/3.5));
+    public Fire(int fireSize, Point fireLocation) {
+        size = fireSize;
+        location = fireLocation;
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
 
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
-        //Fire 1
-        //
-        g.fillArc(leftRiver.getX(),leftRiver.getY(), size,size,0,360);
-        g.drawString("" + size, leftRiver.getX() + size , leftRiver.getY() + size);
-
-        //Fire 2
-        //
-        g.fillArc(belowRiver.getX(), belowRiver.getY(), size1, size1, 0, 360);
-        g.drawString(""+ size1, belowRiver.getX() + size1, belowRiver.getY() + size1);
-
-        //Fire3
-        //fix issue of hitting right side of display
-        //
-        g.fillArc(rightRiver.getX(), rightRiver.getY(), size2, size2, 0, 360);
         g.setFont(fireSizeFont);
-        g.drawString(""+ size2, rightRiver.getX() + size2, rightRiver.getY() + size2);
+
+        g.fillArc(location.getX(),location.getY(), size,size,0,360);
+        g.drawString("" + size, location.getX() + size , location.getY() + size);
     }
 
 }
@@ -178,17 +190,21 @@ class Helicopter {
 
     public Helicopter() {
         size = 30;
-        location = new Point(Display.getInstance().getDisplayWidth()/2 - (int)(size*1.5), Display.getInstance().getDisplayHeight() - (int)(Display.getInstance().getDisplayHeight()/8.5));
+        location = new Point(Game.DISP_W/2 - (int)(size*1.5),
+                Game.DISP_H - (int)(Game.DISP_H/8.5));
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
-        g.fillArc(location.getX() + size, location.getY() + size, size, size, 0, 360);
+        g.fillArc(location.getX() + size, location.getY() + size, size,
+                size, 0, 360);
 
         //Line not displaying correctly, sometimes visible, sometimes not displayed
         //most likely some bug, will look into
         //
-        g.drawLine(location.getX() + size +size/2, location.getY() +size +size/2, location.getX() + size/2 + size, location.getY() - size/6);
+        g.drawLine(location.getX() + size +size/2, location.getY() +
+                size + size/2, location.getX() + size/2 + size,
+                location.getY() - size/6);
     }
 
 
