@@ -112,7 +112,7 @@ class GameWorld {
         fires.add(fire1);
         fires.add(fire2);
         fires.add(fire3);
-        helicopter = new Helicopter();
+        helicopter = new Helicopter(helipad.getCenterX(), helipad.getCenterY());
     }
 
     void draw(Graphics g) {
@@ -130,6 +130,7 @@ class GameWorld {
                 fire.growFire();
             }
         }
+
     }
 
     public void input(int input) {
@@ -148,6 +149,10 @@ class GameWorld {
                 break;
         }
     }
+
+//    public void move(int input) {
+//
+//    }
 
     public void quit() {
         Display.getInstance().exitApplication();
@@ -173,35 +178,52 @@ class River {
 }
 
 class Helipad {
-    private Point centerLocation;
+    private Point rectangleLocation, centerLocation;
     private int boxSize;
-    private int circleSize;
+    private int circleSize, radius;
 
     public Helipad() {
         boxSize = 150;
         circleSize = 100;
-        centerLocation = new Point(Game.DISP_W/2 - boxSize/2,
+        radius = circleSize/2;
+        rectangleLocation = new Point(Game.DISP_W/2 - boxSize/2,
                 (int) (Game.DISP_H - (boxSize*1.5)));
+        centerLocation =
+                new Point(rectangleLocation.getX() + (boxSize/2),
+                        rectangleLocation.getY() + (boxSize/2));
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.GRAY);
-        g.drawRect(centerLocation.getX(), centerLocation.getY(), boxSize,
+        g.drawRect(rectangleLocation.getX(), rectangleLocation.getY(), boxSize,
                 boxSize, 5);
-        g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2,
-                centerLocation.getY() + (boxSize-circleSize)/2, circleSize,
+//        g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2,
+//                centerLocation.getY() + (boxSize-circleSize)/2, circleSize,
+//                circleSize, 0, 360);
+        g.drawArc(centerLocation.getX() - radius,
+                centerLocation.getY() - radius, circleSize,
                 circleSize, 0, 360);
+        g.setColor(ColorUtil.BLUE);
+    }
+
+    public int getCenterX() {
+        return centerLocation.getX() + (boxSize/2);
+    }
+
+    public int getCenterY() {
+        return centerLocation.getY() + (boxSize/2);
     }
 
 }
 
 class Fire {
     private Point location;
-    private int size;
+    private int size, radius;
     private Font fireSizeFont;
 
     public Fire(int fireSize, Point fireLocation) {
         size = fireSize;
+        radius = fireSize/2;
         location = fireLocation;
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
                 Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
@@ -229,13 +251,24 @@ class Fire {
 }
 
 class Helicopter {
-    private int size;
+    private int size, hRadius, centerX, centerY;
     private Point location;
+    private int startHeadX, startHeadY, endHeadX, endHeadY;
+    private double angle;
 
-    public Helicopter() {
+    public Helicopter(int centerex, int centerwhy) {
         size = 30;
         location = new Point(Game.DISP_W/2 - (int)(size*1.5),
                 Game.DISP_H - (int)(Game.DISP_H/8.5));
+        hRadius = size/2;
+        centerX = centerex;
+        centerY = centerwhy;
+        angle = Math.toRadians(-90);
+        startHeadX = location.getX() + size +size/2;
+        startHeadY = location.getY() + size + size/2;
+        endHeadX = (int) (centerX + hRadius * Math.cos(angle));
+        endHeadY = (int) (centerY - hRadius * Math.sin(angle));
+
     }
 
     public void move(){
@@ -267,9 +300,8 @@ class Helicopter {
         //Line not displaying correctly, sometimes visible, sometimes not displayed
         //most likely some bug, will look into
         //
-        g.drawLine(location.getX() + size +size/2, location.getY() +
-                size + size/2, location.getX() + size/2 + size,
-                location.getY() - size/6);
+//        g.drawLine(startHeadX,startHeadY, endHeadX,
+//                endHeadY);
     }
 
 
