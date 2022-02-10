@@ -217,14 +217,15 @@ class Helipad {
 }
 
 class Fire {
-    private Point location;
+    private Point centerLocation;
     private int size, radius;
     private Font fireSizeFont;
 
     public Fire(int fireSize, Point fireLocation) {
         size = fireSize;
         radius = fireSize/2;
-        location = fireLocation;
+        centerLocation = new Point(fireLocation.getX() + radius,
+                fireLocation.getY() + radius);
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
                 Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
 
@@ -235,17 +236,24 @@ class Fire {
     //
 
     void growFire() {
-        size += new Random().nextInt(5);
+        int move = new Random().nextInt(5);
+        size += move;
+        centerLocation.setX(centerLocation.getX() - (int)(move/2));
+        centerLocation.setY(centerLocation.getY() - (int)(move/2));
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
         g.setFont(fireSizeFont);
 
-        g.fillArc(location.getX(),location.getY(), size, size,0,
+        g.fillArc(centerLocation.getX() - radius,
+                centerLocation.getY() - radius, size, size,0,
                 360);
-        g.drawString("" + size, location.getX() + size,
-                location.getY() + size);
+        g.drawString("" + size, centerLocation.getX() + radius,
+                centerLocation.getY() + radius);
+        g.setColor(ColorUtil.BLUE);
+        g.drawLine(centerLocation.getX(), centerLocation.getY(),
+                centerLocation.getX() + radius, centerLocation.getY() + radius);
     }
 
 }
