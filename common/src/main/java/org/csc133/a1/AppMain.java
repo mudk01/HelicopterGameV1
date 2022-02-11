@@ -11,6 +11,7 @@ import com.codename1.io.*;
 import com.codename1.ui.plaf.*;
 import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
+import com.sun.management.internal.GarbageCollectorExtImpl;
 import org.graalvm.compiler.phases.util.GraphOrder;
 
 import java.util.ArrayList;
@@ -112,7 +113,7 @@ class GameWorld {
         fires.add(fire1);
         fires.add(fire2);
         fires.add(fire3);
-        helicopter = new Helicopter(helipad.getCenterX(), helipad.getCenterY());
+        helicopter = new Helicopter(helipad.getHelipadCenter());
     }
 
     void draw(Graphics g) {
@@ -130,6 +131,7 @@ class GameWorld {
                 fire.growFire();
             }
         }
+        helicopter.move();
 
     }
 
@@ -142,10 +144,10 @@ class GameWorld {
                 helicopter.moveForwards();
                 break;
             case -93:
-                helicopter.moveRight();
+                helicopter.moveLeft();
                 break;
             case -94:
-                helicopter.moveLeft();
+                helicopter.moveRight();
                 break;
         }
     }
@@ -197,27 +199,21 @@ class Helipad {
         g.setColor(ColorUtil.GRAY);
         g.drawRect(rectangleLocation.getX(), rectangleLocation.getY(), boxSize,
                 boxSize, 5);
-//        g.drawArc(centerLocation.getX() + (boxSize-circleSize)/2,
-//                centerLocation.getY() + (boxSize-circleSize)/2, circleSize,
-//                circleSize, 0, 360);
         g.drawArc(centerLocation.getX() - radius,
                 centerLocation.getY() - radius, circleSize,
                 circleSize, 0, 360);
         g.setColor(ColorUtil.BLUE);
     }
 
-    public int getCenterX() {
-        return centerLocation.getX() + (boxSize/2);
+    public Point getHelipadCenter() {
+        return centerLocation;
     }
 
-    public int getCenterY() {
-        return centerLocation.getY() + (boxSize/2);
-    }
 
 }
 
 class Fire {
-    private Point centerLocation, centerLocationText;
+    private Point centerLocation;
     private int size, radius;
     private Font fireSizeFont;
 
@@ -231,8 +227,6 @@ class Fire {
 
     }
 
-    //TODO: Still need to grow fire from center out, so need to redo fire
-    // object creations
     //
 
     void growFire() {
@@ -258,57 +252,70 @@ class Fire {
 }
 
 class Helicopter {
-    private int size, hRadius, centerX, centerY;
-    private Point location;
+    private int size, hRadius, centerX, centerY, currSpeed, fuel, water;
+    private Point helipadCenterLocation, heliLocation;
     private int startHeadX, startHeadY, endHeadX, endHeadY;
     private double angle;
+    private final int MAX_SPEED = 10;
 
-    public Helicopter(int centerex, int centerwhy) {
+    public Helicopter(Point heliCenter) {
         size = 30;
-        location = new Point(Game.DISP_W/2 - (int)(size*1.5),
-                Game.DISP_H - (int)(Game.DISP_H/8.5));
+        currSpeed = 0;
+        fuel = 30000;
+        helipadCenterLocation = heliCenter;
         hRadius = size/2;
-        centerX = centerex;
-        centerY = centerwhy;
-        angle = Math.toRadians(-90);
-        startHeadX = location.getX() + size +size/2;
-        startHeadY = location.getY() + size + size/2;
-        endHeadX = (int) (centerX + hRadius * Math.cos(angle));
-        endHeadY = (int) (centerY - hRadius * Math.sin(angle));
+
+        centerX = helipadCenterLocation.getX();
+        centerY = helipadCenterLocation.getY();
+        heliLocation = new Point(centerX - hRadius,
+                centerY -hRadius);
+
+        angle = Math.toRadians(90);
+//        startHeadX = centerX;
+//        startHeadY = centerY;
+        endHeadX = centerX;
+        endHeadY = centerY - size;
 
     }
 
     public void move(){
-        /*
-         */
+        while(currSpeed > 0 && currSpeed <= 10) {
+            centerX = centerX + currSpeed;
+            centerY = centerY + currSpeed;
+        }
     }
 
     void moveForwards() {
-        location.setY(location.getY() - 10);
+        currSpeed += 1;
     }
 
     void moveBackwards() {
-        location.setY(location.getY() + 10);
+        currSpeed -= 1;
     }
 
     void moveLeft() {
-        location.setX(location.getX() + 10);
+//        helipadCenterLocation.setX(helipadCenterLocation.getX() + 10);
+        angle += Math.toRadians(15);
+        endHeadX = (int) (centerX + Math.cos(angle) * size);
+        endHeadY = (int) (centerY - Math.sin(angle) * size);
     }
 
     void moveRight() {
-        location.setX(location.getX() - 10);
+        angle -= Math.toRadians(15);
+        endHeadX = (int) (centerX + Math.cos(angle) * size);
+        endHeadY = (int) (centerY - Math.sin(angle) * size);
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
-        g.fillArc(location.getX() + size, location.getY() + size, size,
+        g.fillArc(heliLocation.getX(),
+                heliLocation.getY(), size,
                 size, 0, 360);
+        g.drawLine(centerX, centerY , endHeadX,
+                endHeadY);
+        g.drawString("" + currSpeed, heliLocation.getX() + size,
+                heliLocation.getY() +size);
 
-        //Line not displaying correctly, sometimes visible, sometimes not displayed
-        //most likely some bug, will look into
-        //
-//        g.drawLine(startHeadX,startHeadY, endHeadX,
-//                endHeadY);
     }
 
 
