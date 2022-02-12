@@ -47,10 +47,11 @@ class Game extends Form implements Runnable {
         addKeyListener(-91, (evt) -> gw.input(-91));
         addKeyListener(-94, (evt) -> gw.input(-94));
         addKeyListener(-93, (evt) -> gw.input(-93));
+        addKeyListener('d', (evt) -> gw.input('d'));
 
 
         UITimer timer = new UITimer(this);
-        timer.schedule(100, true, this);
+        timer.schedule(50, true, this);
 
         this.getAllStyles().setBgColor(ColorUtil.BLACK);
         this.show();
@@ -78,6 +79,7 @@ class GameWorld {
     private int fireSize1, fireSize2, fireSize3;
     private Point fireLocation1, fireLocation2, fireLocaton3;
     private int fuel;
+    private boolean riverCollision;
 
 
     public GameWorld() {
@@ -135,6 +137,8 @@ class GameWorld {
             }
         }
         helicopter.move();
+        helicopter.checkRiverCollision(river.getLocation(), river.getWidth(),
+                river.getHeight());
 
     }
 
@@ -152,6 +156,8 @@ class GameWorld {
             case -94:
                 helicopter.moveRight();
                 break;
+            case 'd':
+                helicopter.drinkWater();
         }
     }
 
@@ -178,13 +184,25 @@ class River {
         return location;
     }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
     void draw(Graphics g) {
         g.setColor(ColorUtil.BLUE);
         g.drawRect(location.getX(),location.getY(), width, height);
         //TEST
         //
-        g.drawString("" + location.getX() + ", " + location.getY(),
-                location.getX(), location.getY());
+        g.drawString("" + (location.getX() + width) + ", " +
+                        (location.getY() + height), (location.getX() + width/2),
+                (location.getY() + height));
+        g.drawString("" + location.getX() + ", " +
+                        location.getY(), location.getX(),
+                location.getY());
     }
 }
 
@@ -243,6 +261,8 @@ class Fire {
         centerLocation.setY(centerLocation.getY() - (int)(move/2));
     }
 
+    public Point getFireLocation()
+
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
         g.setFont(fireSizeFont);
@@ -263,6 +283,7 @@ class Helicopter {
     private int endHeadX, endHeadY;
     private double angle;
     private final int MAX_SPEED = 10;
+    private boolean riverCollision, fireCollision;
 
     public Helicopter(Point heliCenter) {
         size = 30;
@@ -271,13 +292,14 @@ class Helicopter {
         helipadCenterLocation = heliCenter;
         hRadius = size/2;
         heliLocation = new Point(helipadCenterLocation.getX() - hRadius,
-                helipadCenterLocation.getY() - hRadius);
+                helipadCenterLocation.getY());
         centerX = heliLocation.getX() + hRadius;
         centerY = heliLocation.getY() + hRadius;
 
         angle = Math.toRadians(90);
         endHeadX = centerX;
         endHeadY = centerY - (size*2);
+        riverCollision = false;
     }
 
     void move(){
@@ -313,12 +335,27 @@ class Helicopter {
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
     }
 
-    void checkCollision(Point location) {
-        Point riverLocation = location;
-
+    void checkRiverCollision(Point location, int width, int height) {
+        if((centerX >= location.getX() && centerY >= location.getY()) &&
+                (centerX <= (location.getX() + width) && centerY <=
+                        (location.getY() + height))) {
+            riverCollision = true;
+        }
+        else
+            riverCollision = false;
     }
+    void checkFire
 
     void drinkWater() {
+        if((riverCollision && currSpeed <= 2) && water < 1000) {
+                water += 100;
+        }
+    }
+
+    void fightFire() {
+        if(fireCollision) {
+
+        }
     }
 
     void setFuel(int fuelIn) {
@@ -328,12 +365,16 @@ class Helicopter {
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
         g.fillArc(heliLocation.getX(),
-                heliLocation.getY() + hRadius, size,
+                heliLocation.getY(), size,
                 size, 0, 360);
-        g.drawLine(centerX, centerY + hRadius, endHeadX,
-                endHeadY + hRadius);
-        g.drawString("" + currSpeed, heliLocation.getX() + size,
-                heliLocation.getY() +size);
+        g.setColor(ColorUtil.BLUE);
+        g.drawLine(centerX, centerY, endHeadX,
+                endHeadY);
+        g.drawString("" + heliLocation.getX() + "," + heliLocation.getY(),
+                heliLocation.getX() + size,
+                heliLocation.getY() + size);
+        g.drawString("water: " + water, heliLocation.getX() + (size*2),
+                heliLocation.getY() + (size*2));
     }
 
 }
