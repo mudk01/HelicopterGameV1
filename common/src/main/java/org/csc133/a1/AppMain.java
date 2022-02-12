@@ -315,7 +315,6 @@ class Helicopter {
 
     void checkCollision(Point location) {
         Point riverLocation = location;
-//        if()
 
     }
 
