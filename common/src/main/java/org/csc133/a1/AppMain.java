@@ -77,6 +77,7 @@ class GameWorld {
     private Helicopter helicopter;
     private int fireSize1, fireSize2, fireSize3;
     private Point fireLocation1, fireLocation2, fireLocaton3;
+    private int fuel;
 
 
     public GameWorld() {
@@ -114,6 +115,8 @@ class GameWorld {
         fires.add(fire2);
         fires.add(fire3);
         helicopter = new Helicopter(helipad.getHelipadCenter());
+        fuel = 30000;
+        helicopter.setFuel(fuel);
     }
 
     void draw(Graphics g) {
@@ -152,12 +155,10 @@ class GameWorld {
         }
     }
 
-//    public void move(int input) {
-//
-//    }
-
     public void quit() {
-        Display.getInstance().exitApplication();
+        if(Dialog.show("Confirm", "Do you want to Quit?", "OK", "Cancel")) {
+            Display.getInstance().exitApplication();
+        }
     }
 }
 
@@ -173,9 +174,17 @@ class River {
 
     }
 
+    public Point getLocation() {
+        return location;
+    }
+
     void draw(Graphics g) {
         g.setColor(ColorUtil.BLUE);
         g.drawRect(location.getX(),location.getY(), width, height);
+        //TEST
+        //
+        g.drawString("" + location.getX() + ", " + location.getY(),
+                location.getX(), location.getY());
     }
 }
 
@@ -224,13 +233,10 @@ class Fire {
                 fireLocation.getY() + radius);
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
                 Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
-
     }
 
-    //
-
     void growFire() {
-        int move = new Random().nextInt(5);
+        int move = new Random().nextInt(3);
         size += move;
         radius = size/2;
         centerLocation.setX(centerLocation.getX() - (int)(move/2));
@@ -254,7 +260,7 @@ class Fire {
 class Helicopter {
     private int size, hRadius, centerX, centerY, currSpeed, fuel, water;
     private Point helipadCenterLocation, heliLocation;
-    private int startHeadX, startHeadY, endHeadX, endHeadY;
+    private int endHeadX, endHeadY;
     private double angle;
     private final int MAX_SPEED = 10;
 
@@ -264,59 +270,71 @@ class Helicopter {
         fuel = 30000;
         helipadCenterLocation = heliCenter;
         hRadius = size/2;
-
-        centerX = helipadCenterLocation.getX();
-        centerY = helipadCenterLocation.getY();
-        heliLocation = new Point(centerX - hRadius,
-                centerY -hRadius);
+        heliLocation = new Point(helipadCenterLocation.getX() - hRadius,
+                helipadCenterLocation.getY() - hRadius);
+        centerX = heliLocation.getX() + hRadius;
+        centerY = heliLocation.getY() + hRadius;
 
         angle = Math.toRadians(90);
-//        startHeadX = centerX;
-//        startHeadY = centerY;
         endHeadX = centerX;
-        endHeadY = centerY - size;
-
+        endHeadY = centerY - (size*2);
     }
 
-    public void move(){
-        while(currSpeed > 0 && currSpeed <= 10) {
-            centerX = centerX + currSpeed;
-            centerY = centerY + currSpeed;
-        }
+    void move(){
+        heliLocation.setY((int) (heliLocation.getY() - Math.sin(angle) * currSpeed));
+        centerY = heliLocation.getY() + hRadius;
+        heliLocation.setX((int) (heliLocation.getX() + Math.cos(angle) * currSpeed));
+        centerX = heliLocation.getX() + hRadius;
+        endHeadX = (int) (centerX + Math.cos(angle) * size*2);
+        endHeadY = (int) (centerY - Math.sin(angle) * size*2);
     }
 
     void moveForwards() {
-        currSpeed += 1;
+        if(currSpeed < MAX_SPEED) {
+            currSpeed++;
+        }
     }
 
     void moveBackwards() {
-        currSpeed -= 1;
+        if(currSpeed > 0) {
+            currSpeed--;
+        }
     }
 
     void moveLeft() {
-//        helipadCenterLocation.setX(helipadCenterLocation.getX() + 10);
         angle += Math.toRadians(15);
-        endHeadX = (int) (centerX + Math.cos(angle) * size);
-        endHeadY = (int) (centerY - Math.sin(angle) * size);
+        endHeadX = (int) (centerX + Math.cos(angle) * size*2);
+        endHeadY = (int) (centerY - Math.sin(angle) * size*2);
     }
 
     void moveRight() {
         angle -= Math.toRadians(15);
-        endHeadX = (int) (centerX + Math.cos(angle) * size);
-        endHeadY = (int) (centerY - Math.sin(angle) * size);
+        endHeadX = (int) (centerX + Math.cos(angle) * size*2);
+        endHeadY = (int) (centerY - Math.sin(angle) * size*2);
+    }
+
+    void checkCollision(Point location) {
+        Point riverLocation = location;
+//        if()
+
+    }
+
+    void drinkWater() {
+    }
+
+    void setFuel(int fuelIn) {
+        this.fuel = fuelIn;
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
         g.fillArc(heliLocation.getX(),
-                heliLocation.getY(), size,
+                heliLocation.getY() + hRadius, size,
                 size, 0, 360);
-        g.drawLine(centerX, centerY , endHeadX,
-                endHeadY);
+        g.drawLine(centerX, centerY + hRadius, endHeadX,
+                endHeadY + hRadius);
         g.drawString("" + currSpeed, heliLocation.getX() + size,
                 heliLocation.getY() +size);
-
     }
-
 
 }
