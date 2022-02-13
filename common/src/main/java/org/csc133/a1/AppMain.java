@@ -1,18 +1,10 @@
 package org.csc133.a1;
 
-import static com.codename1.ui.CN.*;
-
 import com.codename1.charts.util.ColorUtil;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.*;
 import com.codename1.ui.geom.Point;
-import com.codename1.ui.layouts.*;
-import com.codename1.io.*;
-import com.codename1.ui.plaf.*;
-import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
-import com.sun.management.internal.GarbageCollectorExtImpl;
-import org.graalvm.compiler.phases.util.GraphOrder;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -74,12 +66,13 @@ class Game extends Form implements Runnable {
 class GameWorld {
     private River river;
     private Helipad helipad;
-    private Fire fire1, fire2, fire3;
+    private Fire fire1, fire2, fire3, detectedFire;
     private ArrayList<Fire> fires;
     private Helicopter helicopter;
     private int fireSize1, fireSize2, fireSize3;
     private Point fireLocation1, fireLocation2, fireLocaton3;
     private int fuel;
+    private boolean fuelLevel, fireDetected;
 
     public GameWorld() {
         init();
@@ -111,6 +104,7 @@ class GameWorld {
         fire1 = new Fire(fireSize1, fireLocation1);
         fire2 = new Fire(fireSize2, fireLocation2);
         fire3 = new Fire(fireSize3, fireLocaton3);
+        detectedFire = new Fire();
         fires = new ArrayList<>();
         fires.add(fire1);
         fires.add(fire2);
@@ -118,6 +112,8 @@ class GameWorld {
         helicopter = new Helicopter(helipad.getHelipadCenter());
         fuel = 30000;
         helicopter.setFuel(fuel);
+        fuelLevel = false;
+        fireDetected = false;
     }
 
     void draw(Graphics g) {
@@ -134,12 +130,19 @@ class GameWorld {
             if((new Random().nextInt(100)) % 3 == 0) {
                 fire.growFire();
             }
+            if(helicopter.checkFireCollision(fire)) {
+                fire.setTue();
+            } else {
+                fire.setFalse();
+            }
+//            fireDetected = helicopter.checkFireCollision(fire);
+//                fire.reduceFire(helicopter.getWater())
         }
+
         helicopter.move();
         helicopter.checkRiverCollision(river.getLocation(), river.getWidth(),
                 river.getHeight());
-        helicopter.checkFireCollision(fires);
-
+        fuelLevel = helicopter.checkFuel();
 
     }
 
@@ -170,6 +173,19 @@ class GameWorld {
     public void quit() {
         if(Dialog.show("Confirm", "Do you want to Quit?", "OK", "Cancel")) {
             Display.getInstance().exitApplication();
+        }
+    }
+
+    public void endGame() {
+        if(fuelLevel) {
+            if(Dialog.show("Game Over", "You ran out of fuel", "Replay",
+                    "Exit")) {
+                Display.getInstance().refreshNativeTitle();
+            }
+            else {
+                Display.getInstance().exitApplication();
+
+            }
         }
     }
 }
@@ -249,6 +265,7 @@ class Fire {
     private Point centerLocation;
     private int size, radius;
     private Font fireSizeFont;
+    private boolean isDetected;
 
     public Fire(int fireSize, Point fireLocation) {
         size = fireSize;
@@ -257,8 +274,23 @@ class Fire {
                 fireLocation.getY() + radius);
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
                 Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+        isDetected = false;
     }
 
+    public Fire() {
+
+    }
+
+    public void setTue() {
+        isDetected = true;
+    }
+    public void setFalse() {
+        isDetected = false;
+    }
+
+    public boolean detected() {
+        return isDetected;
+    }
     void growFire() {
         int move = new Random().nextInt(2);
         size += move;
@@ -276,7 +308,9 @@ class Fire {
     }
 
     void reduceFire(int water) {
-        size -= water/(new Random().nextInt(7) + 8);
+//        if(keyPress) {
+            size -= water / (new Random().nextInt(7) + 8);
+//        }
     }
 
     void checkFireSize() {
@@ -322,6 +356,7 @@ class Helicopter {
         size = 30;
         currSpeed = 0;
         fuel = 30000;
+        water = 0;
         helipadCenterLocation = heliCenter;
         hRadius = size/2;
         heliLocation = new Point(helipadCenterLocation.getX() - hRadius,
@@ -344,6 +379,7 @@ class Helicopter {
         centerX = heliLocation.getX() + hRadius;
         endHeadX = (int) (centerX + Math.cos(angle) * size*2);
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
+        fuel -= 1000;
     }
 
     void moveForwards() {
@@ -375,19 +411,15 @@ class Helicopter {
                 (centerX <= (location.getX() + width) && centerY <=
                         (location.getY() + height));
     }
-    void checkFireCollision(ArrayList<Fire> fires) {
-        for(Fire fire : fires) {
-            if((centerX >= (fire.getFireLocation().getX() - fire.getRadius()) &&
-                    centerY >= (fire.getFireLocation().getY() - fire.getRadius()))
-                    && (centerX <= (fire.getFireLocation().getX() +
-                    fire.getRadius()) && centerY <= (fire.getFireLocation().getY()
-                    + fire.getRadius()))) {
-                fireCollision = true;
-                fireCheck++;
-                break;
-            }
-            fireCollision = false;
-        }
+    boolean checkFireCollision(Fire fire) {
+//        for(Fire fire : fires) {
+        //                fireCheck++;
+        return (centerX >= (fire.getFireLocation().getX() - fire.getRadius()) &&
+                centerY >= (fire.getFireLocation().getY() - fire.getRadius()))
+                && (centerX <= (fire.getFireLocation().getX() +
+                fire.getRadius()) && centerY <= (fire.getFireLocation().getY()
+                + fire.getRadius()));
+//        }
     }
 
     void drinkWater() {
@@ -398,9 +430,10 @@ class Helicopter {
 
     void fightFire(ArrayList<Fire> fires) {
         for(Fire fire : fires) {
-            if(fireCollision) {
+            if(fire.detected()) {
                 fire.reduceFire(water);
             }
+            fire.setFalse();
         }
     }
 
@@ -408,8 +441,16 @@ class Helicopter {
         water = 0;
     }
 
+    public int getWater() {
+        return water;
+    }
+
     void setFuel(int fuelIn) {
         this.fuel = fuelIn;
+    }
+
+    public boolean checkFuel() {
+        return fuel <= 0;
     }
 
     void draw(Graphics g) {
@@ -427,6 +468,8 @@ class Helicopter {
                 heliLocation.getY() + (size*2));
         g.drawString("" + fireCheck ,heliLocation.getX() + size*3,
                 heliLocation.getY() + size*3);
+        g.drawString("" + fuel ,heliLocation.getX() + size*4,
+                heliLocation.getY() + size*4);
     }
 
 }
