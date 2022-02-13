@@ -48,6 +48,7 @@ class Game extends Form implements Runnable {
         addKeyListener(-94, (evt) -> gw.input(-94));
         addKeyListener(-93, (evt) -> gw.input(-93));
         addKeyListener('d', (evt) -> gw.input('d'));
+        addKeyListener('f', (evt) -> gw.input('f'));
 
 
         UITimer timer = new UITimer(this);
@@ -79,8 +80,6 @@ class GameWorld {
     private int fireSize1, fireSize2, fireSize3;
     private Point fireLocation1, fireLocation2, fireLocaton3;
     private int fuel;
-    private boolean riverCollision;
-
 
     public GameWorld() {
         init();
@@ -139,6 +138,8 @@ class GameWorld {
         helicopter.move();
         helicopter.checkRiverCollision(river.getLocation(), river.getWidth(),
                 river.getHeight());
+        helicopter.checkFireCollision(fires);
+
 
     }
 
@@ -158,6 +159,11 @@ class GameWorld {
                 break;
             case 'd':
                 helicopter.drinkWater();
+                break;
+            case 'f':
+                helicopter.fightFire(fires);
+                helicopter.dropWater();
+                break;
         }
     }
 
@@ -254,14 +260,28 @@ class Fire {
     }
 
     void growFire() {
-        int move = new Random().nextInt(3);
+        int move = new Random().nextInt(2);
         size += move;
         radius = size/2;
         centerLocation.setX(centerLocation.getX() - (int)(move/2));
         centerLocation.setY(centerLocation.getY() - (int)(move/2));
     }
 
-    public Point getFireLocation()
+    public Point getFireLocation() {
+        return centerLocation;
+    }
+
+    public int getRadius() {
+        return radius;
+    }
+
+    void reduceFire(int water) {
+        size -= water/(new Random().nextInt(7) + 8);
+    }
+
+    void checkFireSize() {
+
+    }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
@@ -273,6 +293,18 @@ class Fire {
         g.drawString("" + size, centerLocation.getX() + radius,
                 centerLocation.getY() + radius);
         g.setColor(ColorUtil.BLUE);
+        g.drawString("edge l" + (centerLocation.getX() - radius) + ", " + (centerLocation.getY() - radius),
+                centerLocation.getX() - radius,
+                centerLocation.getY());
+        g.drawString("top l" + (centerLocation.getY() - radius),
+                centerLocation.getX() - radius,
+                centerLocation.getY() - radius);
+        g.drawString("edge r " + (centerLocation.getX() + radius),
+                centerLocation.getX() + radius,
+                centerLocation.getY());
+        g.drawString("edge bottom  " + (centerLocation.getY() + radius),
+                centerLocation.getX() + radius,
+                centerLocation.getY() + radius);
     }
 
 }
@@ -284,6 +316,7 @@ class Helicopter {
     private double angle;
     private final int MAX_SPEED = 10;
     private boolean riverCollision, fireCollision;
+    private int fireCheck;
 
     public Helicopter(Point heliCenter) {
         size = 30;
@@ -299,6 +332,8 @@ class Helicopter {
         angle = Math.toRadians(90);
         endHeadX = centerX;
         endHeadY = centerY - (size*2);
+        fireCollision = false;
+        fireCheck = 0;
         riverCollision = false;
     }
 
@@ -336,15 +371,24 @@ class Helicopter {
     }
 
     void checkRiverCollision(Point location, int width, int height) {
-        if((centerX >= location.getX() && centerY >= location.getY()) &&
+        riverCollision = (centerX >= location.getX() && centerY >= location.getY()) &&
                 (centerX <= (location.getX() + width) && centerY <=
-                        (location.getY() + height))) {
-            riverCollision = true;
-        }
-        else
-            riverCollision = false;
+                        (location.getY() + height));
     }
-    void checkFire
+    void checkFireCollision(ArrayList<Fire> fires) {
+        for(Fire fire : fires) {
+            if((centerX >= (fire.getFireLocation().getX() - fire.getRadius()) &&
+                    centerY >= (fire.getFireLocation().getY() - fire.getRadius()))
+                    && (centerX <= (fire.getFireLocation().getX() +
+                    fire.getRadius()) && centerY <= (fire.getFireLocation().getY()
+                    + fire.getRadius()))) {
+                fireCollision = true;
+                fireCheck++;
+                break;
+            }
+            fireCollision = false;
+        }
+    }
 
     void drinkWater() {
         if((riverCollision && currSpeed <= 2) && water < 1000) {
@@ -352,10 +396,16 @@ class Helicopter {
         }
     }
 
-    void fightFire() {
-        if(fireCollision) {
-
+    void fightFire(ArrayList<Fire> fires) {
+        for(Fire fire : fires) {
+            if(fireCollision) {
+                fire.reduceFire(water);
+            }
         }
+    }
+
+    void dropWater() {
+        water = 0;
     }
 
     void setFuel(int fuelIn) {
@@ -375,6 +425,8 @@ class Helicopter {
                 heliLocation.getY() + size);
         g.drawString("water: " + water, heliLocation.getX() + (size*2),
                 heliLocation.getY() + (size*2));
+        g.drawString("" + fireCheck ,heliLocation.getX() + size*3,
+                heliLocation.getY() + size*3);
     }
 
 }
