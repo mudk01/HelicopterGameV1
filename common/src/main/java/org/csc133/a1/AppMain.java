@@ -66,13 +66,13 @@ class Game extends Form implements Runnable {
 class GameWorld {
     private River river;
     private Helipad helipad;
-    private Fire fire1, fire2, fire3, detectedFire;
+    private Fire fire1, fire2, fire3;
     private ArrayList<Fire> fires;
     private Helicopter helicopter;
     private int fireSize1, fireSize2, fireSize3;
     private Point fireLocation1, fireLocation2, fireLocaton3;
     private int fuel;
-    private boolean fuelLevel, fireDetected;
+    private boolean fuelLevel;
 
     public GameWorld() {
         init();
@@ -104,7 +104,6 @@ class GameWorld {
         fire1 = new Fire(fireSize1, fireLocation1);
         fire2 = new Fire(fireSize2, fireLocation2);
         fire3 = new Fire(fireSize3, fireLocaton3);
-        detectedFire = new Fire();
         fires = new ArrayList<>();
         fires.add(fire1);
         fires.add(fire2);
@@ -113,7 +112,6 @@ class GameWorld {
         fuel = 30000;
         helicopter.setFuel(fuel);
         fuelLevel = false;
-        fireDetected = false;
     }
 
     void draw(Graphics g) {
@@ -135,8 +133,9 @@ class GameWorld {
             } else {
                 fire.setFalse();
             }
-//            fireDetected = helicopter.checkFireCollision(fire);
-//                fire.reduceFire(helicopter.getWater())
+            if(fire.getSize() <= 0) {
+                fire.removeFire();
+            }
         }
 
         helicopter.move();
@@ -265,7 +264,7 @@ class Fire {
     private Point centerLocation;
     private int size, radius;
     private Font fireSizeFont;
-    private boolean isDetected;
+    private boolean isDetected, fireErased;
 
     public Fire(int fireSize, Point fireLocation) {
         size = fireSize;
@@ -275,10 +274,7 @@ class Fire {
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
                 Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
         isDetected = false;
-    }
-
-    public Fire() {
-
+        fireErased = false;
     }
 
     public void setTue() {
@@ -291,6 +287,7 @@ class Fire {
     public boolean detected() {
         return isDetected;
     }
+
     void growFire() {
         int move = new Random().nextInt(2);
         size += move;
@@ -307,38 +304,42 @@ class Fire {
         return radius;
     }
 
-    void reduceFire(int water) {
-//        if(keyPress) {
-            size -= water / (new Random().nextInt(7) + 8);
-//        }
+    public int getSize() {
+        return size;
     }
 
-    void checkFireSize() {
+    void reduceFire(int water) {
+        size -= water / (new Random().nextInt(7) + 8);
+    }
 
+    void removeFire() {
+        fireErased = true;
     }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
         g.setFont(fireSizeFont);
 
-        g.fillArc(centerLocation.getX() - radius,
-                centerLocation.getY() - radius, size, size,0,
-                360);
-        g.drawString("" + size, centerLocation.getX() + radius,
-                centerLocation.getY() + radius);
-        g.setColor(ColorUtil.BLUE);
-        g.drawString("edge l" + (centerLocation.getX() - radius) + ", " + (centerLocation.getY() - radius),
-                centerLocation.getX() - radius,
-                centerLocation.getY());
-        g.drawString("top l" + (centerLocation.getY() - radius),
-                centerLocation.getX() - radius,
-                centerLocation.getY() - radius);
-        g.drawString("edge r " + (centerLocation.getX() + radius),
-                centerLocation.getX() + radius,
-                centerLocation.getY());
-        g.drawString("edge bottom  " + (centerLocation.getY() + radius),
-                centerLocation.getX() + radius,
-                centerLocation.getY() + radius);
+        if(!fireErased) {
+            g.fillArc(centerLocation.getX() - radius,
+                    centerLocation.getY() - radius, size, size,0,
+                    360);
+            g.drawString("" + size, centerLocation.getX() + radius,
+                    centerLocation.getY() + radius);
+        }
+//        g.setColor(ColorUtil.BLUE);
+//        g.drawString("edge l" + (centerLocation.getX() - radius) + ", " + (centerLocation.getY() - radius),
+//                centerLocation.getX() - radius,
+//                centerLocation.getY());
+//        g.drawString("top l" + (centerLocation.getY() - radius),
+//                centerLocation.getX() - radius,
+//                centerLocation.getY() - radius);
+//        g.drawString("edge r " + (centerLocation.getX() + radius),
+//                centerLocation.getX() + radius,
+//                centerLocation.getY());
+//        g.drawString("edge bottom  " + (centerLocation.getY() + radius),
+//                centerLocation.getX() + radius,
+//                centerLocation.getY() + radius);
     }
 
 }
@@ -349,7 +350,7 @@ class Helicopter {
     private int endHeadX, endHeadY;
     private double angle;
     private final int MAX_SPEED = 10;
-    private boolean riverCollision, fireCollision;
+    private boolean riverCollision;
     private int fireCheck;
 
     public Helicopter(Point heliCenter) {
@@ -367,7 +368,6 @@ class Helicopter {
         angle = Math.toRadians(90);
         endHeadX = centerX;
         endHeadY = centerY - (size*2);
-        fireCollision = false;
         fireCheck = 0;
         riverCollision = false;
     }
@@ -412,14 +412,11 @@ class Helicopter {
                         (location.getY() + height));
     }
     boolean checkFireCollision(Fire fire) {
-//        for(Fire fire : fires) {
-        //                fireCheck++;
         return (centerX >= (fire.getFireLocation().getX() - fire.getRadius()) &&
                 centerY >= (fire.getFireLocation().getY() - fire.getRadius()))
                 && (centerX <= (fire.getFireLocation().getX() +
                 fire.getRadius()) && centerY <= (fire.getFireLocation().getY()
                 + fire.getRadius()));
-//        }
     }
 
     void drinkWater() {
@@ -441,12 +438,8 @@ class Helicopter {
         water = 0;
     }
 
-    public int getWater() {
-        return water;
-    }
-
     void setFuel(int fuelIn) {
-        this.fuel = fuelIn;
+        fuel = fuelIn;
     }
 
     public boolean checkFuel() {
