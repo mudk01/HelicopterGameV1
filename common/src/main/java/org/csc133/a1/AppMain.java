@@ -5,6 +5,7 @@ import com.codename1.system.Lifecycle;
 import com.codename1.ui.*;
 import com.codename1.ui.geom.Point;
 import com.codename1.ui.util.UITimer;
+import sun.tools.asm.SwitchData;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -67,11 +68,11 @@ class GameWorld {
     private River river;
     private Helipad helipad;
     private Fire fire1, fire2, fire3;
-    private ArrayList<Fire> fires;
+    private ArrayList<Fire> fires, deadFires;
     private Helicopter helicopter;
     private int fireSize1, fireSize2, fireSize3;
     private Point fireLocation1, fireLocation2, fireLocaton3;
-    private int fuel;
+    private int fuel, tickCount;
 
     public GameWorld() {
         init();
@@ -104,12 +105,14 @@ class GameWorld {
         fire2 = new Fire(fireSize2, fireLocation2);
         fire3 = new Fire(fireSize3, fireLocaton3);
         fires = new ArrayList<>();
+        deadFires = new ArrayList<>();
         fires.add(fire1);
         fires.add(fire2);
         fires.add(fire3);
         helicopter = new Helicopter(helipad.getHelipadCenter(), helipad.getHelipadSize());
         fuel = 30000;
         helicopter.setFuel(fuel);
+        tickCount = 0;
     }
 
     void draw(Graphics g) {
@@ -123,21 +126,26 @@ class GameWorld {
 
     public void tick() {
         for(Fire fire : fires) {
-            if((new Random().nextInt(100)) % 3 == 0) {
+            if(tickCount%10==0) {
                 fire.growFire();
             }
+            tickCount++;
             if(helicopter.checkFireCollision(fire)) {
                 fire.setTue();
             } else {
                 fire.setFalse();
             }
-        }
-        for(Fire deadFire: fires) {
-            if(deadFire.getSize() <= 0) {
-                deadFire.removeFire();
-                fires.remove(deadFire);
+            if(fire.getSize() <= 0) {
+                deadFires.add(fire);
             }
         }
+//        for(Fire deadFire: fires) {
+//            if(deadFire.getSize() <= 0) {
+//                deadFire.removeFire();
+//                fires.remove(deadFire);
+//            }
+//        }
+        fires.removeAll(deadFires);
         if(fires.isEmpty() && helicopter.isOnPad()) {
             gameWon();
         }
@@ -329,15 +337,15 @@ class Fire {
         size -= water / (new Random().nextInt(7) + 8);
     }
 
-    void removeFire() {
-        fireErased = true;
-    }
+//    void removeFire() {
+//        fireErased = true;
+//    }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
         g.setFont(fireSizeFont);
 
-        if(!fireErased) {
+        if(size>0) {
             g.fillArc(centerLocation.getX() - radius,
                     centerLocation.getY() - radius, size, size,0,
                     360);
@@ -359,7 +367,7 @@ class Helicopter {
     public Helicopter(Point heliCenter, int helipadSize) {
         size = 30;
         currSpeed = 0;
-        fuel = 30000;
+        fuel = 0;
         water = 0;
         helipadCenterLocation = heliCenter;
         hRadius = size/2;
@@ -382,7 +390,7 @@ class Helicopter {
         centerX = heliLocation.getX() + hRadius;
         endHeadX = (int) (centerX + Math.cos(angle) * size*2);
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
-        fuel -= 20;
+        fuel -= 5;
     }
 
     void moveForwards() {
