@@ -107,17 +107,17 @@ class GameWorld {
         fires.add(fire1);
         fires.add(fire2);
         fires.add(fire3);
-        helicopter = new Helicopter(helipad.getHelipadCenter());
+        helicopter = new Helicopter(helipad.getHelipadCenter(), helipad.getHelipadSize());
         fuel = 30000;
         helicopter.setFuel(fuel);
     }
 
     void draw(Graphics g) {
-        river.draw(g);
         helipad.draw(g);
         for(Fire fire : fires) {
             fire.draw(g);
         }
+        river.draw(g);
         helicopter.draw(g);
     }
 
@@ -138,7 +138,7 @@ class GameWorld {
                 fires.remove(deadFire);
             }
         }
-        if(fires.isEmpty()) {
+        if(fires.isEmpty() && helicopter.isOnPad()) {
             gameWon();
         }
         helicopter.move();
@@ -184,16 +184,17 @@ class GameWorld {
     public void endGame() {
         if(Dialog.show("Game Over", "You ran out of fuel",
                 "Replay", "Exit")) {
-            Display.getInstance().refreshNativeTitle();
+            init();
             }
             else {
                 Display.getInstance().exitApplication();
             }
     }
+
     public void gameWon() {
         if(Dialog.show("Congratulations!", "You put out all the fires!",
                 "Replay", "Exit")) {
-            Display.getInstance().refreshNativeTitle();
+            init();
         }
         else {
             Display.getInstance().exitApplication();
@@ -267,6 +268,10 @@ class Helipad {
 
     public Point getHelipadCenter() {
         return centerLocation;
+    }
+
+    public int getHelipadSize() {
+        return circleSize;
     }
 
 
@@ -346,12 +351,12 @@ class Fire {
 class Helicopter {
     private int size, hRadius, centerX, centerY, currSpeed, fuel, water;
     private Point helipadCenterLocation, heliLocation;
-    private int endHeadX, endHeadY;
+    private int endHeadX, endHeadY, padSize;
     private double angle;
     private final int MAX_SPEED = 10;
     private boolean riverCollision;
 
-    public Helicopter(Point heliCenter) {
+    public Helicopter(Point heliCenter, int helipadSize) {
         size = 30;
         currSpeed = 0;
         fuel = 30000;
@@ -367,6 +372,7 @@ class Helicopter {
         endHeadX = centerX;
         endHeadY = centerY - (size*2);
         riverCollision = false;
+        padSize = helipadSize;
     }
 
     void move(){
@@ -376,7 +382,7 @@ class Helicopter {
         centerX = heliLocation.getX() + hRadius;
         endHeadX = (int) (centerX + Math.cos(angle) * size*2);
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
-        fuel -= 50;
+        fuel -= 20;
     }
 
     void moveForwards() {
@@ -443,6 +449,14 @@ class Helicopter {
         return fuel <= 0;
     }
 
+    public boolean isOnPad() {
+        return (centerX >= (helipadCenterLocation.getX() - padSize) &&
+                centerY >= (helipadCenterLocation.getY() - padSize))
+                && (centerX <= (helipadCenterLocation.getX() +
+                padSize) && centerY <= (helipadCenterLocation.getY()
+                + padSize));
+    }
+
     void draw(Graphics g) {
         g.setColor(ColorUtil.YELLOW);
         g.fillArc(heliLocation.getX(),
@@ -455,5 +469,4 @@ class Helicopter {
         g.drawString("W: " + water ,heliLocation.getX(),
                 heliLocation.getY() + (size*4));
     }
-
 }
