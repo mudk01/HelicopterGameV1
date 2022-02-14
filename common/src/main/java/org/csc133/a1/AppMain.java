@@ -237,14 +237,6 @@ class River {
     void draw(Graphics g) {
         g.setColor(ColorUtil.BLUE);
         g.drawRect(location.getX(),location.getY(), width, height);
-        //TEST
-        //
-        g.drawString("" + (location.getX() + width) + ", " +
-                        (location.getY() + height), (location.getX() + width/2),
-                (location.getY() + height));
-        g.drawString("" + location.getX() + ", " +
-                        location.getY(), location.getX(),
-                location.getY());
     }
 }
 
@@ -289,7 +281,7 @@ class Fire {
     private Point centerLocation;
     private int size, radius;
     private Font fireSizeFont;
-    private boolean isDetected, fireErased;
+    private boolean isDetected;
 
     public Fire(int fireSize, Point fireLocation) {
         size = fireSize;
@@ -299,7 +291,6 @@ class Fire {
         fireSizeFont = Font.createSystemFont(Font.FACE_SYSTEM,
                 Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
         isDetected = false;
-        fireErased = false;
     }
 
     public void setTue() {
@@ -337,9 +328,6 @@ class Fire {
         size -= water / (new Random().nextInt(7) + 8);
     }
 
-//    void removeFire() {
-//        fireErased = true;
-//    }
 
     void draw(Graphics g) {
         g.setColor(ColorUtil.MAGENTA);
