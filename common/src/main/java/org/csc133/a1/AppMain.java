@@ -42,7 +42,7 @@ class Game extends Form implements Runnable {
         addKeyListener('f', (evt) -> gw.input('f'));
 
         UITimer timer = new UITimer(this);
-        timer.schedule(50, true, this);
+        timer.schedule(30, true, this);
 
         this.getAllStyles().setBgColor(ColorUtil.BLACK);
         this.show();
@@ -192,7 +192,7 @@ class GameWorld {
 
     public void gameWon() {
         if(Dialog.show("Congratulations!",
-                "You put out all the fires!",
+                "You put out all the fires!\n Score: "+helicopter.getFuel(),
                 "Replay", "Exit")) {
             init();
         }
@@ -368,7 +368,7 @@ class Helicopter {
         centerX = heliLocation.getX() + hRadius;
         endHeadX = (int) (centerX + Math.cos(angle) * size*2);
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
-        fuel -= (currSpeed*currSpeed) + 5;
+        fuel -= Math.min((currSpeed) + 5, (currSpeed*currSpeed) + 5);
     }
 
     void moveForwards() {
@@ -437,12 +437,16 @@ class Helicopter {
         return fuel <= 0;
     }
 
+    public int getFuel() {
+        return fuel;
+    }
+
     public boolean isOnPad() {
-        return (centerX >= (helipadCenterLocation.getX() - padSize) &&
-                centerY >= (helipadCenterLocation.getY() - padSize))
+        return (centerX >= (helipadCenterLocation.getX() - padSize/2) &&
+                centerY >= (helipadCenterLocation.getY() - padSize/2))
                 && (centerX <= (helipadCenterLocation.getX() +
-                padSize) && centerY <= (helipadCenterLocation.getY()
-                + padSize));
+                padSize/2) && centerY <= (helipadCenterLocation.getY()
+                + padSize/2));
     }
 
     void draw(Graphics g) {
