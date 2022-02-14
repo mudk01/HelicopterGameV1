@@ -28,9 +28,9 @@ class Game extends Form implements Runnable {
 
     final static int DISP_W = Display.getInstance().getDisplayWidth();
     final static int DISP_H = Display.getInstance().getDisplayHeight();
-//
-//    public static int getSmallDim() { return Math.min(DISP_W,DISP_H); }
-//    public static int getLargeDim() { return Math.max(DISP_W,DISP_H); }
+
+    public static int getSmallDim() { return Math.min(DISP_W,DISP_H); }
+    public static int getLargeDim() { return Math.max(DISP_W,DISP_H); }
 
     public Game() {
         gw = new GameWorld();
@@ -116,22 +116,24 @@ class GameWorld {
     }
 
     void draw(Graphics g) {
+        g.clearRect(0,0, Game.DISP_W, Game.DISP_H);
+        river.draw(g);
         helipad.draw(g);
         for(Fire fire : fires) {
             fire.draw(g);
         }
-        river.draw(g);
         helicopter.draw(g);
     }
 
     public void tick() {
+        helicopter.move();
         for(Fire fire : fires) {
             if(tickCount%10==0) {
                 fire.growFire();
             }
             tickCount++;
             if(helicopter.checkFireCollision(fire)) {
-                fire.setTue();
+                fire.setTrue();
             } else {
                 fire.setFalse();
             }
@@ -139,17 +141,10 @@ class GameWorld {
                 deadFires.add(fire);
             }
         }
-//        for(Fire deadFire: fires) {
-//            if(deadFire.getSize() <= 0) {
-//                deadFire.removeFire();
-//                fires.remove(deadFire);
-//            }
-//        }
         fires.removeAll(deadFires);
         if(fires.isEmpty() && helicopter.isOnPad()) {
             gameWon();
         }
-        helicopter.move();
         helicopter.checkRiverCollision(river.getLocation(), river.getWidth(),
                 river.getHeight());
         if(helicopter.checkFuel()) {
@@ -216,9 +211,9 @@ class River {
     private int height;
 
     public River() {
-        width = Game.DISP_W-4;
-        height = Game.DISP_H/8;
-        location = new Point(0, Game.DISP_H/3 - height);
+        width = Game.DISP_W;
+        height = Game.DISP_H/9;
+        location = new Point(0, Game.DISP_H/3-height);
 
     }
 
@@ -274,7 +269,6 @@ class Helipad {
         return circleSize;
     }
 
-
 }
 
 class Fire {
@@ -293,7 +287,7 @@ class Fire {
         isDetected = false;
     }
 
-    public void setTue() {
+    public void setTrue() {
         isDetected = true;
     }
     public void setFalse() {
@@ -363,7 +357,6 @@ class Helicopter {
                 helipadCenterLocation.getY());
         centerX = heliLocation.getX() + hRadius;
         centerY = heliLocation.getY() + hRadius;
-
         angle = Math.toRadians(90);
         endHeadX = centerX;
         endHeadY = centerY - (size*2);
