@@ -442,11 +442,11 @@ class Helicopter {
     }
 
     public boolean isOnPad() {
-        return (centerX >= (helipadCenterLocation.getX() - padSize/2) &&
-                centerY >= (helipadCenterLocation.getY() - padSize/2))
+        return (centerX >= (helipadCenterLocation.getX() - padSize/4) &&
+                centerY >= (helipadCenterLocation.getY() - padSize/4))
                 && (centerX <= (helipadCenterLocation.getX() +
-                padSize/2) && centerY <= (helipadCenterLocation.getY()
-                + padSize/2));
+                padSize/4) && centerY <= (helipadCenterLocation.getY()
+                + padSize/4));
     }
 
     void draw(Graphics g) {
