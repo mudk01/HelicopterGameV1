@@ -42,7 +42,7 @@ class Game extends Form implements Runnable {
         addKeyListener('f', (evt) -> gw.input('f'));
 
         UITimer timer = new UITimer(this);
-        timer.schedule(30, true, this);
+        timer.schedule(50, true, this);
 
         this.getAllStyles().setBgColor(ColorUtil.BLACK);
         this.show();
@@ -368,7 +368,7 @@ class Helicopter {
         centerX = heliLocation.getX() + hRadius;
         endHeadX = (int) (centerX + Math.cos(angle) * size*2);
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
-        fuel -= Math.min((currSpeed) + 5, (currSpeed*currSpeed) + 5);
+        fuel -= (int) (Math.sqrt(currSpeed) + 5);
     }
 
     void moveForwards() {
