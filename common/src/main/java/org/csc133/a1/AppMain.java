@@ -216,7 +216,7 @@ class River {
     private int height;
 
     public River() {
-        width = Game.DISP_W;
+        width = Game.DISP_W-4;
         height = Game.DISP_H/8;
         location = new Point(0, Game.DISP_H/3 - height);
 
@@ -378,7 +378,7 @@ class Helicopter {
         centerX = heliLocation.getX() + hRadius;
         endHeadX = (int) (centerX + Math.cos(angle) * size*2);
         endHeadY = (int) (centerY - Math.sin(angle) * size*2);
-        fuel -= 5;
+        fuel -= 15;
     }
 
     void moveForwards() {
